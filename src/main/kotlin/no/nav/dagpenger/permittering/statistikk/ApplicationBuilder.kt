@@ -10,7 +10,10 @@ internal class ApplicationBuilder(
     private val rapidsConnection: RapidsConnection =
         RapidApplication
             .create(configuration)
-            .also { it.register(this) }
+            .also { rapid ->
+                SøknadBehandlingMottak(rapid)
+                rapid.register(this)
+            }
 
     fun start() = rapidsConnection.start()
 
