@@ -150,3 +150,12 @@ gradle-app.setting
 # End of https://www.gitignore.io/api/gradle,kotlin,intellij+all,macos
 **/bin
 dokumentasjon/DOKUMENTASJON.md
+
+# Secrets and local env files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.jks
+*.p12
