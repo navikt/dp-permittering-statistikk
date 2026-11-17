@@ -5,18 +5,24 @@
 
 ## Repository Overview
 
-<!-- TODO: Describe what this application does, who uses it, and key architecture decisions -->
+Rapids & Rivers application producing statistics about permittering (lay-offs) in dagpenger.
+
+- Owner: team STSB (Saksbehandling dagpenger) in teamdagpenger
+- Not an economy system (`okonomisystem: "false"` in `.nais/nais.yaml`)
+- Domain scope (source events, storage, consumers) is not decided yet
 
 ## Tech Stack
 
-<!-- TODO: List technologies used -->
+- Kotlin/JVM 25, Gradle with version catalog `no.nav.dagpenger:dp-version-catalog`
+- Rapids & Rivers (`teamdagpenger.rapid.v1`), konfig for configuration
+- Kotest assertions and `TestRapid` for tests
+- Nais on GCP, Renovate via `navikt/dp-renovate`
 
 ## Key Patterns
 
-<!-- TODO: Document project-specific patterns, e.g.:
-     - Authentication flow
-     - Data access patterns
-     - API conventions -->
+- Setup follows `navikt/dp-saksbehandling`: `ApplicationBuilder` wires `RapidApplication`, defaults live in `Configuration`
+- Rivers use `precondition` for `@event_name` filtering and `validate` for required fields
+- Never log personal data (fnr, name); log behandling/event ids instead
 
 ## Minimal Editing
 

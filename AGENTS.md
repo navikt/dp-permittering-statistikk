@@ -1,17 +1,21 @@
 # AGENTS.md — dp-permittering-statistikk
 
-<!-- TODO: Describe what this application does -->
+Rapids & Rivers application producing statistics about permittering in dagpenger. Owned by team STSB (teamdagpenger). Not an economy system.
 
 ## Build & Test Commands
 
 ```bash
-# TODO: Add build and test commands
+./gradlew build   # compile, ktlint, tests and shadow jar
+./gradlew test
 ```
 
 ## Project Structure
 
 ```text
-# TODO: Add key directories
+src/main/kotlin/no/nav/dagpenger/permittering/statistikk/  # App, ApplicationBuilder, Configuration, rivers
+src/test/kotlin/                                           # Tests (TestRapid)
+.nais/                                                     # Nais manifest and vars per environment
+.github/workflows/                                         # Build and deploy to dev-gcp/prod-gcp
 ```
 
 ## Code Style
@@ -24,7 +28,7 @@ Keep diffs small and focused so they are easy to review.
 
 ## Git Workflow
 
-<!-- TODO: Document your branching and merge strategy -->
+Trunk-based on `main`: every push to `main` builds and deploys to dev-gcp and prod-gcp. Renovate branches only run tests.
 
 ## Boundaries
 
