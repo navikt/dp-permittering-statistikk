@@ -6,7 +6,8 @@ import kotlin.test.Test
 class ConfigurationTest {
     @Test
     fun `har rapid-konfigurasjon som default`() {
-        Configuration.config shouldContain ("KAFKA_RAPID_TOPIC" to "teamdagpenger.rapid.v1")
+        Configuration.config shouldContain ("KAFKA_RAPID_TOPIC" to "teamdagpenger.permittering-statistikk.v1")
+        Configuration.config shouldContain ("KAFKA_EXTRA_TOPIC" to "teamdagpenger.rapid.v1")
         Configuration.config shouldContain ("KAFKA_CONSUMER_GROUP_ID" to "dp-permittering-statistikk-v1")
     }
 }

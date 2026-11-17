@@ -14,7 +14,9 @@ Rapids & Rivers application producing statistics about permittering (lay-offs) i
 ## Tech Stack
 
 - Kotlin/JVM 25, Gradle with version catalog `no.nav.dagpenger:dp-version-catalog`
-- Rapids & Rivers (`teamdagpenger.rapid.v1`), konfig for configuration
+- Rapids & Rivers: primary topic `teamdagpenger.permittering-statistikk.v1` (output read by the statistics team), extra topic `teamdagpenger.rapid.v1` (input)
+- The output topic is managed in `navikt/dagpenger-iac`, not in this repo
+- konfig for configuration
 - Kotest assertions and `TestRapid` for tests
 - Nais on GCP, Renovate via `navikt/dp-renovate`
 
