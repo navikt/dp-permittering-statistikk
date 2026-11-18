@@ -6,11 +6,12 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.oshai.kotlinlogging.withLoggingContext
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.dagpenger.permittering.statistikk.BehandlingHendelse.Companion.toBehandlingHendelse
 
 internal class SøknadBehandlingMottak(
     rapidsConnection: RapidsConnection,
+    private val service: Service,
 ) : River.PacketListener {
     companion object {
         private val logger = KotlinLogging.logger {}
@@ -41,25 +42,49 @@ internal class SøknadBehandlingMottak(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val eventName = packet["@event_name"].stringValue()
-        val behandlingId = packet["behandlingId"].stringValue()
-        val søknadId = packet["behandletHendelse"]["id"].stringValue()
-        withLoggingContext("behandlingId" to behandlingId, "søknadId" to søknadId) {
-            logger.info { "Mottok $eventName for søknadId: $søknadId, behandlingId: $behandlingId" }
-            val ident = packet["ident"].stringValue()
-            if (eventName == "behandling_opprettet") {
-                val behov =
-                    JsonMessage.newNeed(
-                        behov = setOf("PermittertFiskeforedling", "Permittert"),
-                        map =
-                            mapOf(
-                                "ident" to ident,
-                                "søknadId" to søknadId,
-                                "behandlingId" to behandlingId,
-                            ),
-                    )
-                context.publish(key = ident, message = behov.toJson())
+        service.håndter(packet.toBehandlingHendelse(), context)
+    }
+}
+
+sealed class BehandlingHendelse(
+    protected val packet: JsonMessage,
+) {
+    companion object {
+        fun JsonMessage.toBehandlingHendelse(): BehandlingHendelse {
+            val eventName = this["@event_name"].stringValue()
+            return when (eventName) {
+                "behandling_opprettet" -> {
+                    BehandlingOpprettet(this)
+                }
+
+                "behandling_avbrutt" -> {
+                    BehandlingAvbrutt(this)
+                }
+
+                "behandlingsresultat" -> {
+                    BehandlingFerdig(this)
+                }
+                else -> throw IllegalArgumentException("Kunne ikke opprette melding for $eventName")
             }
         }
     }
+
+    class BehandlingOpprettet(
+        packet: JsonMessage,
+    ) : BehandlingHendelse(packet)
+
+    class BehandlingFerdig(
+        packet: JsonMessage,
+    ) : BehandlingHendelse(packet)
+
+    class BehandlingAvbrutt(
+        packet: JsonMessage,
+    ) : BehandlingHendelse(packet)
+}
+
+interface Service {
+    fun håndter(
+        toBehandlingHendelse: BehandlingHendelse,
+        context: MessageContext,
+    )
 }

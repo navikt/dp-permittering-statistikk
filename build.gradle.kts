@@ -17,6 +17,7 @@ dependencies {
     implementation(libs.konfig)
 
     testImplementation(libs.bundles.kotest.assertions)
+    testImplementation(libs.mockk)
     testImplementation(libs.rapids.and.rivers.test)
 }
 

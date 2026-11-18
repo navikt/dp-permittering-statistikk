@@ -11,7 +11,7 @@ internal class ApplicationBuilder(
         RapidApplication
             .create(configuration)
             .also { rapid ->
-                SøknadBehandlingMottak(rapid)
+//                SøknadBehandlingMottak(rapid)
                 rapid.register(this)
             }
 

@@ -1,10 +1,14 @@
 package no.nav.dagpenger.permittering.statistikk
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import io.kotest.matchers.shouldBe
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.verify
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
-import tools.jackson.databind.JsonNode
 
 class SøknadBehandlingMottakTest {
     private val testRapid = TestRapid()
@@ -13,19 +17,53 @@ class SøknadBehandlingMottakTest {
     private val ident = "12345612345"
 
     @Test
-    fun `Skal publisere behov når en søknadsbehandling er opprettet`() {
-        SøknadBehandlingMottak(testRapid)
+    fun `Skal håndtere søknadsbehandling er opprettet`() {
+        val service =
+            mockk<Service>().also {
+                every { it.håndter(any(), any()) } just Runs
+            }
+        SøknadBehandlingMottak(testRapid, service)
 
         testRapid.sendTestMessage(
             søknadsbehandlingHendelse(hendelseNavn = "behandling_opprettet"),
         )
-        testRapid.inspektør.size shouldBe 1
-        testRapid.inspektør.message(0).let {
-            it["@event_name"].stringValue() shouldBe "behov"
-            it["@behov"].map { behov -> behov.stringValue() } shouldBe listOf("PermittertFiskeforedling", "Permittert")
-            it["ident"].stringValue() shouldBe ident
-            it["søknadId"].stringValue() shouldBe søknadId.toString()
-            it["behandlingId"].stringValue() shouldBe behandlingId.toString()
+
+        verify(exactly = 1) {
+            service.håndter(any<BehandlingHendelse.BehandlingOpprettet>(), any())
+        }
+    }
+
+    @Test
+    fun `Skal håndtere søknadsbehandling er avbrutt`() {
+        val service =
+            mockk<Service>().also {
+                every { it.håndter(any(), any()) } just Runs
+            }
+        SøknadBehandlingMottak(testRapid, service)
+
+        testRapid.sendTestMessage(
+            søknadsbehandlingHendelse(hendelseNavn = "behandling_avbrutt"),
+        )
+
+        verify(exactly = 1) {
+            service.håndter(any<BehandlingHendelse.BehandlingAvbrutt>(), any())
+        }
+    }
+
+    @Test
+    fun `Skal håndtere søknadsbehandling er ferdig behandlet`() {
+        val service =
+            mockk<Service>().also {
+                every { it.håndter(any(), any()) } just Runs
+            }
+        SøknadBehandlingMottak(testRapid, service)
+
+        testRapid.sendTestMessage(
+            søknadsbehandlingHendelse(hendelseNavn = "behandlingsresultat"),
+        )
+
+        verify(exactly = 1) {
+            service.håndter(any<BehandlingHendelse.BehandlingFerdig>(), any())
         }
     }
 
@@ -34,6 +72,7 @@ class SøknadBehandlingMottakTest {
         søknadId: UUID = this.søknadId,
         behandlingId: UUID = this.behandlingId,
         ident: String = this.ident,
+        skjedde: LocalDate = LocalDate.now(),
     ): String {
         //language=JSON
         return """
@@ -41,29 +80,12 @@ class SøknadBehandlingMottakTest {
               "@event_name": "$hendelseNavn",
               "behandletHendelse": {
                 "type": "Søknad",
-                "id": "$søknadId"
+                "id": "$søknadId",
+                "skjedde": "$skjedde"
               },
               "behandlingId": "$behandlingId",
               "ident": "$ident"
             }
             """.trimIndent()
     }
-
-    private fun behov(
-        søknadId: UUID = this.søknadId,
-        behandlingId: UUID = this.behandlingId,
-        ident: String = this.ident,
-    ): String {
-        //language=JSON
-        return """
-            {
-              "@event_name": "behov",
-              "@behov": ["PermittertFiskeforedling", "Permittert"],,
-              "ident": "$ident"
-              "søknadId": "$søknadId",
-              "behandlingId": "$behandlingId"
-            }
-            """.trimIndent()
-    }
 }
-fun JsonNode.asUUID(): UUID = this.asString().let { UUID.fromString(it) }
