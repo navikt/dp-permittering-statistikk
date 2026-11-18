@@ -17,9 +17,9 @@ internal class SøknadBehandlingMottak(
 
         val eventNavn =
             listOf(
-                "forslag_til_behandlingsresultat",
-                "behandlingsresultat",
+                "behandling_opprettet",
                 "behandling_avbrutt",
+                "behandlingsresultat",
             )
 
         val rapidFilter: River.() -> Unit = {
@@ -41,12 +41,25 @@ internal class SøknadBehandlingMottak(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val eventName = packet["@event_name"].asText()
-        withLoggingContext(
-            "behandlingId" to packet["behandlingId"].asText(),
-            "behandletHendelseId" to packet["behandletHendelse"]["id"].asText(),
-        ) {
-            logger.info { "Mottok $eventName for søknad" }
+        val eventName = packet["@event_name"].stringValue()
+        val behandlingId = packet["behandlingId"].stringValue()
+        val søknadId = packet["behandletHendelse"]["id"].stringValue()
+        withLoggingContext("behandlingId" to behandlingId, "søknadId" to søknadId) {
+            logger.info { "Mottok $eventName for søknadId: $søknadId, behandlingId: $behandlingId" }
+            val ident = packet["ident"].stringValue()
+            if (eventName == "behandling_opprettet") {
+                val behov =
+                    JsonMessage.newNeed(
+                        behov = setOf("PermittertFiskeforedling", "Permittert"),
+                        map =
+                            mapOf(
+                                "ident" to ident,
+                                "søknadId" to søknadId,
+                                "behandlingId" to behandlingId,
+                            ),
+                    )
+                context.publish(key = ident, message = behov.toJson())
+            }
         }
     }
 }
