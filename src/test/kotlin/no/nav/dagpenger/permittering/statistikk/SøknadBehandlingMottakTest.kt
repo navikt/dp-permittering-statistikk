@@ -17,7 +17,7 @@ class SøknadBehandlingMottakTest {
     private val ident = "12345612345"
 
     @Test
-    fun `Skal håndtere søknadsbehandling er opprettet`() {
+    fun `Skal håndtere at søknadsbehandling er opprettet`() {
         val service =
             mockk<Service>().also {
                 every { it.håndter(any(), any()) } just Runs
@@ -34,7 +34,7 @@ class SøknadBehandlingMottakTest {
     }
 
     @Test
-    fun `Skal håndtere søknadsbehandling er avbrutt`() {
+    fun `Skal håndtere at søknadsbehandling er avbrutt`() {
         val service =
             mockk<Service>().also {
                 every { it.håndter(any(), any()) } just Runs
@@ -51,7 +51,7 @@ class SøknadBehandlingMottakTest {
     }
 
     @Test
-    fun `Skal håndtere søknadsbehandling er ferdig behandlet`() {
+    fun `Skal håndtere at søknadsbehandling er ferdig behandlet`() {
         val service =
             mockk<Service>().also {
                 every { it.håndter(any(), any()) } just Runs
