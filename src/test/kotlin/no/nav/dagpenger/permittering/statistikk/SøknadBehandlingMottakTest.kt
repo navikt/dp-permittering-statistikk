@@ -18,52 +18,52 @@ class SøknadBehandlingMottakTest {
 
     @Test
     fun `Skal håndtere søknadsbehandling er opprettet`() {
-        val service =
-            mockk<Service>().also {
+        val mediator =
+            mockk<Mediator>().also {
                 every { it.håndter(any(), any()) } just Runs
             }
-        SøknadBehandlingMottak(testRapid, service)
+        SøknadBehandlingMottak(testRapid, mediator)
 
         testRapid.sendTestMessage(
             søknadsbehandlingHendelse(hendelseNavn = "behandling_opprettet"),
         )
 
         verify(exactly = 1) {
-            service.håndter(any<BehandlingHendelse.BehandlingOpprettet>(), any())
+            mediator.håndter(any<BehandlingHendelse.BehandlingOpprettet>(), any())
         }
     }
 
     @Test
     fun `Skal håndtere søknadsbehandling er avbrutt`() {
-        val service =
-            mockk<Service>().also {
+        val mediator =
+            mockk<Mediator>().also {
                 every { it.håndter(any(), any()) } just Runs
             }
-        SøknadBehandlingMottak(testRapid, service)
+        SøknadBehandlingMottak(testRapid, mediator)
 
         testRapid.sendTestMessage(
             søknadsbehandlingHendelse(hendelseNavn = "behandling_avbrutt"),
         )
 
         verify(exactly = 1) {
-            service.håndter(any<BehandlingHendelse.BehandlingAvbrutt>(), any())
+            mediator.håndter(any<BehandlingHendelse.BehandlingAvbrutt>(), any())
         }
     }
 
     @Test
     fun `Skal håndtere søknadsbehandling er ferdig behandlet`() {
-        val service =
-            mockk<Service>().also {
+        val mediator =
+            mockk<Mediator>().also {
                 every { it.håndter(any(), any()) } just Runs
             }
-        SøknadBehandlingMottak(testRapid, service)
+        SøknadBehandlingMottak(testRapid, mediator)
 
         testRapid.sendTestMessage(
             søknadsbehandlingHendelse(hendelseNavn = "behandlingsresultat"),
         )
 
         verify(exactly = 1) {
-            service.håndter(any<BehandlingHendelse.BehandlingFerdig>(), any())
+            mediator.håndter(any<BehandlingHendelse.BehandlingFerdig>(), any())
         }
     }
 

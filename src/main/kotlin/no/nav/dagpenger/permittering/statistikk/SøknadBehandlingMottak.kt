@@ -11,7 +11,7 @@ import no.nav.dagpenger.permittering.statistikk.BehandlingHendelse.Companion.toB
 
 internal class SøknadBehandlingMottak(
     rapidsConnection: RapidsConnection,
-    private val service: Service,
+    private val mediator: Mediator,
 ) : River.PacketListener {
     companion object {
         private val logger = KotlinLogging.logger {}
@@ -42,49 +42,6 @@ internal class SøknadBehandlingMottak(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        service.håndter(packet.toBehandlingHendelse(), context)
+        mediator.håndter(packet.toBehandlingHendelse(), context)
     }
-}
-
-sealed class BehandlingHendelse(
-    protected val packet: JsonMessage,
-) {
-    companion object {
-        fun JsonMessage.toBehandlingHendelse(): BehandlingHendelse {
-            val eventName = this["@event_name"].stringValue()
-            return when (eventName) {
-                "behandling_opprettet" -> {
-                    BehandlingOpprettet(this)
-                }
-
-                "behandling_avbrutt" -> {
-                    BehandlingAvbrutt(this)
-                }
-
-                "behandlingsresultat" -> {
-                    BehandlingFerdig(this)
-                }
-                else -> throw IllegalArgumentException("Kunne ikke opprette melding for $eventName")
-            }
-        }
-    }
-
-    class BehandlingOpprettet(
-        packet: JsonMessage,
-    ) : BehandlingHendelse(packet)
-
-    class BehandlingFerdig(
-        packet: JsonMessage,
-    ) : BehandlingHendelse(packet)
-
-    class BehandlingAvbrutt(
-        packet: JsonMessage,
-    ) : BehandlingHendelse(packet)
-}
-
-interface Service {
-    fun håndter(
-        toBehandlingHendelse: BehandlingHendelse,
-        context: MessageContext,
-    )
 }
