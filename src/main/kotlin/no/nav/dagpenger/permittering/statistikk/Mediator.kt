@@ -54,7 +54,16 @@ class Mediator(
                 }
             }
 
-            is BehandlingHendelse.BehandlingFerdig -> TODO()
+            is BehandlingHendelse.BehandlingFerdig -> {
+                if (repository.finnes(behandlingHendelse.behandlingId)) {
+                    JsonMessage
+                        .newMessage(
+                            map = behandlingHendelse.toMap(),
+                        ).let {
+                            context.publish(behandlingHendelse.søknadId.toString(), it.toJson())
+                        }
+                }
+            }
         }
     }
 }

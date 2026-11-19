@@ -1,6 +1,7 @@
 package no.nav.dagpenger.permittering.statistikk
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import no.nav.dagpenger.permittering.statistikk.BehandlingHendelse.HendelseType.FERDIG_BEHANDLET
 import no.nav.dagpenger.permittering.statistikk.BehandlingHendelse.HendelseType.SØKT
 import java.time.LocalDate
 import java.util.UUID
@@ -32,7 +33,7 @@ sealed class BehandlingHendelse(
                 }
 
                 "behandling_avbrutt" -> {
-                    BehandlingAvbrutt(søknadId, behandlingId, skjedde, ident)
+                    BehandlingAvbrutt(søknadId, behandlingId, skjedde, ident, årsak)
                 }
 
                 "behandlingsresultat" -> {
@@ -44,15 +45,28 @@ sealed class BehandlingHendelse(
         }
     }
 
+    abstract val hendelsesType: HendelseType
+
+    fun toMap(): Map<String, Any> =
+        mapOf(
+            "hendelse" to hendelsesType,
+            "ident" to ident,
+            "behandlingId" to behandlingId,
+            "søknadId" to søknadId,
+            "dato" to skjedde,
+        )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        other as BehandlingHendelse
+        if (other !is BehandlingHendelse) return false
 
-        return this.behandlingId == other.behandlingId &&
-            this.søknadId == other.søknadId &&
-            this.ident == other.ident &&
-            this.skjedde == other.skjedde
+        if (søknadId != other.søknadId) return false
+        if (behandlingId != other.behandlingId) return false
+        if (skjedde != other.skjedde) return false
+        if (ident != other.ident) return false
+        if (hendelsesType != other.hendelsesType) return false
+
+        return true
     }
 
     override fun hashCode(): Int {
@@ -60,19 +74,9 @@ sealed class BehandlingHendelse(
         result = 31 * result + behandlingId.hashCode()
         result = 31 * result + skjedde.hashCode()
         result = 31 * result + ident.hashCode()
+        result = 31 * result + hendelsesType.hashCode()
         return result
     }
-
-    abstract fun hendelsesType(): HendelseType
-
-    fun toMap(): Map<String, Any> =
-        mapOf(
-            "hendelse" to hendelsesType(),
-            "ident" to ident,
-            "behandlingId" to behandlingId,
-            "søknadId" to søknadId,
-            "dato" to skjedde,
-        )
 
     class BehandlingOpprettet(
         søknadId: UUID,
@@ -80,7 +84,7 @@ sealed class BehandlingHendelse(
         skjedde: LocalDate,
         ident: String,
     ) : BehandlingHendelse(søknadId, behandlingId, skjedde, ident) {
-        override fun hendelsesType() = SØKT
+        override val hendelsesType = SØKT
     }
 
     class BehandlingFerdig(
@@ -89,7 +93,7 @@ sealed class BehandlingHendelse(
         skjedde: LocalDate,
         ident: String,
     ) : BehandlingHendelse(søknadId, behandlingId, skjedde, ident) {
-        override fun hendelsesType(): HendelseType = HendelseType.FERDIG_BEHANDLET
+        override val hendelsesType: HendelseType = FERDIG_BEHANDLET
     }
 
     class BehandlingAvbrutt(
@@ -97,9 +101,14 @@ sealed class BehandlingHendelse(
         behandlingId: UUID,
         skjedde: LocalDate,
         ident: String,
+        årsak: String,
     ) : BehandlingHendelse(søknadId, behandlingId, skjedde, ident) {
-        override fun hendelsesType(): HendelseType {
-            TODO("Not yet implemented")
-        }
+        override val hendelsesType: HendelseType =
+            when (årsak) {
+                "Oppgaven er endret i Arena" -> {
+                    HendelseType.AVBRUTT_BEHANDLES_ARENA
+                }
+                else -> HendelseType.AVBRUTT
+            }
     }
 }

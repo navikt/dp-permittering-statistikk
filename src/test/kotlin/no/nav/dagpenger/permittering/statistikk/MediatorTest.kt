@@ -6,12 +6,15 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.OutgoingMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.SentMessage
 import io.kotest.assertions.json.shouldEqualSpecifiedJsonIgnoringOrder
 import io.kotest.matchers.shouldBe
+import io.mockk.Called
 import io.mockk.Runs
+import io.mockk.called
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -81,8 +84,7 @@ class MediatorTest {
     }
 
     @Test
-    fun `Skal hendelse for en permitteringssøknad som er avbrutt`() {
-        val slot = slot<SøknadBehandling>()
+    fun `Skal sende hendelse for en permitteringssøknad som er avbrutt`() {
         val repository =
             mockk<Repository>().also {
                 every { it.finnes(behandlingId) } returns true
@@ -103,27 +105,161 @@ class MediatorTest {
                         behandlingId = behandlingId,
                         skjedde = søknadsDato,
                         ident = testIdent,
+                        årsak = "test",
                     ),
                 context = messageContext,
             )
-
-            slot.captured shouldBe
-                SøknadBehandling(
-                    søknadId = søknadId,
-                    behandlingId = behandlingId,
-                )
-
             messageContext.key shouldBe søknadId.toString()
             messageContext.message shouldEqualSpecifiedJsonIgnoringOrder
                 """
                  {
-                  "hendelse": "SØKT",
+                  "hendelse": "AVBRUTT",
                   "ident": "$testIdent",
                   "behandlingId": "$behandlingId",
                   "søknadId": "$søknadId",
                   "dato": "$søknadsDato"
                 } 
                 """.trimIndent()
+
+            mediator.håndter(
+                behandlingHendelse =
+                    BehandlingHendelse.BehandlingAvbrutt(
+                        søknadId = søknadId,
+                        behandlingId = behandlingId,
+                        skjedde = søknadsDato,
+                        ident = testIdent,
+                        årsak = "Oppgaven er endret i Arena",
+                    ),
+                context = messageContext,
+            )
+            messageContext.key shouldBe søknadId.toString()
+            messageContext.message shouldEqualSpecifiedJsonIgnoringOrder
+                """
+                 {
+                  "hendelse": "AVBRUTT_BEHANDLES_ARENA",
+                  "ident": "$testIdent",
+                  "behandlingId": "$behandlingId",
+                  "søknadId": "$søknadId",
+                  "dato": "$søknadsDato"
+                } 
+                """.trimIndent()
+        }
+    }
+
+    @Test
+    fun `Skal sende hendelse for en permitteringssøknad som er ferdigbehandlet`() {
+        val repository =
+            mockk<Repository>().also {
+                every { it.finnes(behandlingId) } returns true
+            }
+
+        val mediator =
+            Mediator(
+                søknadOppslag = mockk(),
+                repository = repository,
+            )
+
+        val messageContext = MockContext()
+        runBlocking {
+            mediator.håndter(
+                behandlingHendelse =
+                    BehandlingHendelse.BehandlingFerdig(
+                        søknadId = søknadId,
+                        behandlingId = behandlingId,
+                        skjedde = søknadsDato,
+                        ident = testIdent,
+                    ),
+                context = messageContext,
+            )
+            messageContext.key shouldBe søknadId.toString()
+            messageContext.message shouldEqualSpecifiedJsonIgnoringOrder
+                """
+                 {
+                  "hendelse": "FERDIG_BEHANDLET",
+                  "ident": "$testIdent",
+                  "behandlingId": "$behandlingId",
+                  "søknadId": "$søknadId",
+                  "dato": "$søknadsDato"
+                } 
+                """.trimIndent()
+        }
+    }
+
+    @Test
+    fun `Skal ignorere behandling hendelser som ikke er en permitterringssøknad`() {
+        val søknadOppslag =
+            mockk<SøknadOppslag>().also {
+                coEvery {
+                    it.erPermittertUtenforFiskeindustri(
+                        søknadId = søknadId,
+                        ident = testIdent,
+                    )
+                } returns false
+
+                coEvery {
+                    it.erPermittertFraFiskeindustri(
+                        søknadId = søknadId,
+                        ident = testIdent,
+                    )
+                } returns false
+            }
+
+        val repository =
+            mockk<Repository>().also {
+                every { it.finnes(behandlingId) } returns false
+            }
+
+        val mediator =
+            Mediator(
+                søknadOppslag = søknadOppslag,
+                repository = repository,
+            )
+
+        val messageContext = mockk<MessageContext>()
+        runBlocking {
+            mediator.håndter(
+                behandlingHendelse =
+                    BehandlingHendelse.BehandlingOpprettet(
+                        søknadId = søknadId,
+                        behandlingId = behandlingId,
+                        skjedde = søknadsDato,
+                        ident = testIdent,
+                    ),
+                context = messageContext,
+            )
+            verify {
+                repository wasNot Called
+                messageContext wasNot called
+            }
+
+            mediator.håndter(
+                behandlingHendelse =
+                    BehandlingHendelse.BehandlingAvbrutt(
+                        søknadId = søknadId,
+                        behandlingId = behandlingId,
+                        skjedde = søknadsDato,
+                        ident = testIdent,
+                        "Oppgaven er endret i Arena",
+                    ),
+                context = messageContext,
+            )
+            verify {
+                messageContext wasNot called
+            }
+
+            mediator.håndter(
+                behandlingHendelse =
+                    BehandlingHendelse.BehandlingFerdig(
+                        søknadId = søknadId,
+                        behandlingId = behandlingId,
+                        skjedde = søknadsDato,
+                        ident = testIdent,
+                    ),
+                context = messageContext,
+            )
+            verify {
+                messageContext wasNot called
+            }
         }
     }
 
