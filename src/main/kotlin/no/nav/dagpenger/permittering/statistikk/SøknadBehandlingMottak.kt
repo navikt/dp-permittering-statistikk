@@ -17,6 +17,19 @@ internal class SøknadBehandlingMottak(
     companion object {
         private val logger = KotlinLogging.logger {}
 
+        fun JsonMessage.preconditions() {
+            this.requireAny("@event_name", eventNavn)
+            this.requireValue("behandletHendelse.type", "Søknad")
+        }
+
+        fun JsonMessage.requiredKeys() {
+            this.requireKey("ident", "behandlingId", "behandletHendelse")
+        }
+
+        fun JsonMessage.interestedKeys() {
+            this.interestedIn("årsak")
+        }
+
         val eventNavn =
             listOf(
                 "behandling_opprettet",
@@ -25,11 +38,11 @@ internal class SøknadBehandlingMottak(
             )
 
         val rapidFilter: River.() -> Unit = {
-            precondition {
-                it.requireAny("@event_name", eventNavn)
-                it.requireValue("behandletHendelse.type", "Søknad")
+            precondition { it.preconditions() }
+            validate {
+                it.requiredKeys()
+                it.interestedKeys()
             }
-            validate { it.requireKey("ident", "behandlingId", "behandletHendelse") }
         }
     }
 

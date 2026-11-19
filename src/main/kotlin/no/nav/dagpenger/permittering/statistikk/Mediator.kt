@@ -44,6 +44,14 @@ class Mediator(
             }
 
             is BehandlingHendelse.BehandlingAvbrutt -> {
+                if (repository.finnes(behandlingHendelse.behandlingId)) {
+                    JsonMessage
+                        .newMessage(
+                            map = behandlingHendelse.toMap(),
+                        ).let {
+                            context.publish(behandlingHendelse.søknadId.toString(), it.toJson())
+                        }
+                }
             }
 
             is BehandlingHendelse.BehandlingFerdig -> TODO()

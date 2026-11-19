@@ -80,6 +80,53 @@ class MediatorTest {
         }
     }
 
+    @Test
+    fun `Skal hendelse for en permitteringssøknad som er avbrutt`() {
+        val slot = slot<SøknadBehandling>()
+        val repository =
+            mockk<Repository>().also {
+                every { it.finnes(behandlingId) } returns true
+            }
+
+        val mediator =
+            Mediator(
+                søknadOppslag = mockk(),
+                repository = repository,
+            )
+
+        val messageContext = MockContext()
+        runBlocking {
+            mediator.håndter(
+                behandlingHendelse =
+                    BehandlingHendelse.BehandlingAvbrutt(
+                        søknadId = søknadId,
+                        behandlingId = behandlingId,
+                        skjedde = søknadsDato,
+                        ident = testIdent,
+                    ),
+                context = messageContext,
+            )
+
+            slot.captured shouldBe
+                SøknadBehandling(
+                    søknadId = søknadId,
+                    behandlingId = behandlingId,
+                )
+
+            messageContext.key shouldBe søknadId.toString()
+            messageContext.message shouldEqualSpecifiedJsonIgnoringOrder
+                """
+                 {
+                  "hendelse": "SØKT",
+                  "ident": "$testIdent",
+                  "behandlingId": "$behandlingId",
+                  "søknadId": "$søknadId",
+                  "dato": "$søknadsDato"
+                } 
+                """.trimIndent()
+        }
+    }
+
     private class MockContext : MessageContext {
         lateinit var key: String
         lateinit var message: String

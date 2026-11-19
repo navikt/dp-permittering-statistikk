@@ -22,9 +22,10 @@ sealed class BehandlingHendelse(
         fun JsonMessage.toBehandlingHendelse(): BehandlingHendelse {
             val eventName = this["@event_name"].stringValue()
             val søknadId: UUID = UUID.fromString(this["behandletHendelse"]["id"].stringValue())
-            val behandlingId: UUID = UUID.fromString(this["behandlingId"].stringValue())
             val skjedde: LocalDate = LocalDate.parse(this["behandletHendelse"]["skjedde"].stringValue())
+            val behandlingId: UUID = UUID.fromString(this["behandlingId"].stringValue())
             val ident: String = this["ident"].stringValue()
+            val årsak: String = this["årsak"].stringValue("")
             return when (eventName) {
                 "behandling_opprettet" -> {
                     BehandlingOpprettet(søknadId, behandlingId, skjedde, ident)
@@ -41,6 +42,25 @@ sealed class BehandlingHendelse(
                 else -> throw IllegalArgumentException("Kunne ikke opprette melding for $eventName")
             }
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as BehandlingHendelse
+
+        return this.behandlingId == other.behandlingId &&
+            this.søknadId == other.søknadId &&
+            this.ident == other.ident &&
+            this.skjedde == other.skjedde
+    }
+
+    override fun hashCode(): Int {
+        var result = søknadId.hashCode()
+        result = 31 * result + behandlingId.hashCode()
+        result = 31 * result + skjedde.hashCode()
+        result = 31 * result + ident.hashCode()
+        return result
     }
 
     abstract fun hendelsesType(): HendelseType
