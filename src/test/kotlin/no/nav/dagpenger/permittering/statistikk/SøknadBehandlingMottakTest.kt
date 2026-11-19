@@ -2,10 +2,10 @@ package no.nav.dagpenger.permittering.statistikk
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.Runs
-import io.mockk.every
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.verify
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -20,7 +20,7 @@ class SøknadBehandlingMottakTest {
     fun `Skal håndtere søknadsbehandling er opprettet`() {
         val mediator =
             mockk<Mediator>().also {
-                every { it.håndter(any(), any()) } just Runs
+                coEvery { it.håndter(any(), any()) } just Runs
             }
         SøknadBehandlingMottak(testRapid, mediator)
 
@@ -28,7 +28,7 @@ class SøknadBehandlingMottakTest {
             søknadsbehandlingHendelse(hendelseNavn = "behandling_opprettet"),
         )
 
-        verify(exactly = 1) {
+        coVerify(exactly = 1) {
             mediator.håndter(any<BehandlingHendelse.BehandlingOpprettet>(), any())
         }
     }
@@ -37,7 +37,7 @@ class SøknadBehandlingMottakTest {
     fun `Skal håndtere søknadsbehandling er avbrutt`() {
         val mediator =
             mockk<Mediator>().also {
-                every { it.håndter(any(), any()) } just Runs
+                coEvery { it.håndter(any(), any()) } just Runs
             }
         SøknadBehandlingMottak(testRapid, mediator)
 
@@ -45,7 +45,7 @@ class SøknadBehandlingMottakTest {
             søknadsbehandlingHendelse(hendelseNavn = "behandling_avbrutt"),
         )
 
-        verify(exactly = 1) {
+        coVerify(exactly = 1) {
             mediator.håndter(any<BehandlingHendelse.BehandlingAvbrutt>(), any())
         }
     }
@@ -54,7 +54,7 @@ class SøknadBehandlingMottakTest {
     fun `Skal håndtere søknadsbehandling er ferdig behandlet`() {
         val mediator =
             mockk<Mediator>().also {
-                every { it.håndter(any(), any()) } just Runs
+                coEvery { it.håndter(any(), any()) } just Runs
             }
         SøknadBehandlingMottak(testRapid, mediator)
 
@@ -62,7 +62,7 @@ class SøknadBehandlingMottakTest {
             søknadsbehandlingHendelse(hendelseNavn = "behandlingsresultat"),
         )
 
-        verify(exactly = 1) {
+        coVerify(exactly = 1) {
             mediator.håndter(any<BehandlingHendelse.BehandlingFerdig>(), any())
         }
     }
