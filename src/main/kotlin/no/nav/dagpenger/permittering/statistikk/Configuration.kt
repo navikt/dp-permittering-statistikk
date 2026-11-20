@@ -21,7 +21,7 @@ object Configuration {
                 "KAFKA_EXTRA_TOPIC" to "teamdagpenger.rapid.v1",
                 "KAFKA_RESET_POLICY" to "LATEST",
                 "SOKNAD_ORKESTRATOR_BASE_URL" to "http://dp-soknad-orkestrator",
-                "SOKNAD_ORKESTRATOR_API_SCOPE" to "api://dev-gcp.teamdagpenger.dp-soknad-orkestrator/.default"
+                "SOKNAD_ORKESTRATOR_API_SCOPE" to "api://dev-gcp.teamdagpenger.dp-soknad-orkestrator/.default",
             ),
         )
 
@@ -40,7 +40,6 @@ object Configuration {
             authType = azureAdConfig.clientSecret(),
         )
     }
-
 
     val søknadOrkestratorTokenProvider = { clientCredentialsTokenProvider(søknadOrkestratorApiScope) }
     val søknadOrkestratorBaseUrl: String = properties[Key("SOKNAD_ORKESTRATOR_BASE_URL", stringType)]

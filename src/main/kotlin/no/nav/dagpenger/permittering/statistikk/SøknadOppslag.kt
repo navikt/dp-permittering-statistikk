@@ -13,9 +13,9 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.jackson3.jackson
-import java.util.UUID
 import tools.jackson.databind.cfg.DateTimeFeature
 import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy
+import java.util.UUID
 
 interface SøknadOppslag {
     suspend fun erPermittertFraFiskeindustri(
@@ -32,13 +32,11 @@ interface SøknadOppslag {
 class SøknadOppslagHttpKlient(
     private val httpClient: HttpClient = httpKlient(),
     private val tokenSupplier: () -> String,
-    private val baseUrl: String ,
+    private val baseUrl: String,
 ) : SøknadOppslag {
-
     companion object {
-
-        fun httpKlient(engine: HttpClientEngine = CIO.create{}): HttpClient {
-            return HttpClient(engine).config {
+        fun httpKlient(engine: HttpClientEngine = CIO.create {}): HttpClient =
+            HttpClient(engine).config {
                 expectSuccess = true
                 install(ContentNegotiation) {
                     jackson {
@@ -50,42 +48,42 @@ class SøknadOppslagHttpKlient(
                         changeDefaultPropertyInclusion {
                             JsonInclude.Value.construct(
                                 JsonInclude.Include.NON_NULL,
-                                JsonInclude.Include.USE_DEFAULTS
+                                JsonInclude.Include.USE_DEFAULTS,
                             )
                         }
                     }
                 }
             }
-        }
     }
 
     override suspend fun erPermittertFraFiskeindustri(
         ident: String,
         søknadId: UUID,
-        ): Boolean {
-         return postBehov("PermittertFiskeforedling", ident, søknadId)
-    }
+    ): Boolean = postBehov("PermittertFiskeforedling", ident, søknadId)
 
     override suspend fun erPermittertUtenforFiskeindustri(
         ident: String,
         søknadId: UUID,
-    ): Boolean {
-        return postBehov("PermittertUtenforFiskeforedling", ident, søknadId)
-    }
+    ): Boolean = postBehov("PermittertUtenforFiskeforedling", ident, søknadId)
 
-    private suspend fun postBehov(behovNavn: String, ident: String, søknadId: UUID): Boolean {
-        return httpClient.post("$baseUrl/behov/$behovNavn") {
-            header("Authorization", "Bearer ${tokenSupplier()}")
-            contentType(ContentType.Application.Json)
-            accept(ContentType.Application.Json)
-            setBody(
-                mapOf(
-                    "ident" to ident,
-                    "søknadId" to søknadId
+    private suspend fun postBehov(
+        behovNavn: String,
+        ident: String,
+        søknadId: UUID,
+    ): Boolean =
+        httpClient
+            .post("$baseUrl/behov/$behovNavn") {
+                header("Authorization", "Bearer ${tokenSupplier()}")
+                contentType(ContentType.Application.Json)
+                accept(ContentType.Application.Json)
+                setBody(
+                    mapOf(
+                        "ident" to ident,
+                        "søknadId" to søknadId,
+                    ),
                 )
-            )
-        }.body<BehovResponse>().verdi
-    }
+            }.body<BehovResponse>()
+            .verdi
 }
 
 private class BehovResponse(

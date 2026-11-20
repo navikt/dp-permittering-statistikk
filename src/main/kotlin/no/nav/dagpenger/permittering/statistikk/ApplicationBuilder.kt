@@ -16,13 +16,15 @@ internal class ApplicationBuilder(
             .also { rapid ->
                 SøknadBehandlingMottak(
                     rapid,
-                    mediator = Mediator(
-                        søknadOppslag = SøknadOppslagHttpKlient(
-                            baseUrl = Configuration.søknadOrkestratorBaseUrl,
-                            tokenSupplier = Configuration.søknadOrkestratorTokenProvider,
+                    mediator =
+                        Mediator(
+                            søknadOppslag =
+                                SøknadOppslagHttpKlient(
+                                    baseUrl = Configuration.søknadOrkestratorBaseUrl,
+                                    tokenSupplier = Configuration.søknadOrkestratorTokenProvider,
+                                ),
+                            repository = repository,
                         ),
-                        repository = repository,
-                    ),
                 )
                 rapid.register(this)
             }
