@@ -40,6 +40,35 @@ spec:
   env:
     - name: JDK_JAVA_OPTIONS
       value: -XX:+UseParallelGC -XX:MaxRAMPercentage=50.0 -XX:ActiveProcessorCount=4
+  gcp:
+    sqlInstances:
+      - collation: nb_NO.UTF8
+        databases:
+          - envVarPrefix: DB
+            name: permitteringsstatistikk
+        diskAutoresize: true
+        diskType: SSD
+        highAvailability: { { db.highAvailability } }
+        insights:
+          enabled: true
+          queryStringLength: 4500
+          recordApplicationTags: true
+          recordClientAddress: true
+        maintenance:
+          day: 1
+          hour: 4
+        pointInTimeRecovery: { { db.pointInTimeRecovery } }
+        tier: "{{ db.tier }}"
+        type: POSTGRES_19
+        flags:
+          - name: cloudsql.enable_pgaudit
+            value: "true"
+          - name: pgaudit.log
+            value: "write,ddl,role"
+          - name: pgaudit.log_parameter
+            value: "on"
+          - name: pgaudit.log_relation
+            value: "on"
   accessPolicy:
     outbound:
       rules:

@@ -15,10 +15,12 @@ dependencies {
     implementation(libs.kotlin.logging)
     implementation(libs.rapids.and.rivers)
     implementation(libs.konfig)
+    implementation(libs.bundles.postgres)
 
     testImplementation(libs.bundles.kotest.assertions)
     testImplementation(libs.mockk)
     testImplementation(libs.rapids.and.rivers.test)
+    testImplementation(libs.bundles.postgres.test)
 }
 
 application {

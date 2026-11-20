@@ -6,7 +6,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.OutgoingMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.SentMessage
 import io.kotest.assertions.json.shouldEqualSpecifiedJsonIgnoringOrder
 import io.kotest.matchers.shouldBe
-import io.mockk.Called
 import io.mockk.Runs
 import io.mockk.called
 import io.mockk.coEvery
@@ -16,6 +15,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
+import no.nav.dagpenger.permittering.statistikk.db.Repository
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -23,7 +23,8 @@ import java.util.UUID
 class MediatorTest {
     private val testIdent = "12345678910"
     private val søknadId = UUID.randomUUID()
-    private val søknadsDato = LocalDate.now()
+    private val søknadDato = LocalDate.now().minusDays(1)
+    private val avsluttetDato = LocalDate.now()
     private val behandlingId = UUID.randomUUID()
 
     @Test
@@ -57,7 +58,7 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingOpprettet(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = søknadsDato,
+                        skjedde = søknadDato,
                         ident = testIdent,
                     ),
                 context = messageContext,
@@ -67,6 +68,7 @@ class MediatorTest {
                 SøknadBehandling(
                     søknadId = søknadId,
                     behandlingId = behandlingId,
+                    mottattDato = søknadDato,
                 )
 
             messageContext.key shouldBe søknadId.toString()
@@ -77,7 +79,7 @@ class MediatorTest {
                   "ident": "$testIdent",
                   "behandlingId": "$behandlingId",
                   "søknadId": "$søknadId",
-                  "dato": "$søknadsDato"
+                  "dato": "$søknadDato"
                 } 
                 """.trimIndent()
         }
@@ -85,9 +87,16 @@ class MediatorTest {
 
     @Test
     fun `Skal sende hendelse for en permitteringssøknad som er avbrutt`() {
+        val slot = slot<SøknadBehandling>()
         val repository =
             mockk<Repository>().also {
-                every { it.finnes(behandlingId) } returns true
+                every { it.finnSøknadBehandling(søknadId = søknadId) } returns
+                    SøknadBehandling(
+                        søknadId = søknadId,
+                        mottattDato = søknadDato,
+                        behandlingId = behandlingId,
+                    )
+                every { it.lagre(capture(slot)) } just Runs
             }
 
         val mediator =
@@ -103,12 +112,22 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingAvbrutt(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = søknadsDato,
+                        skjedde = avsluttetDato,
                         ident = testIdent,
                         årsak = "test",
                     ),
                 context = messageContext,
             )
+
+            slot.captured shouldBe
+                SøknadBehandling(
+                    søknadId = søknadId,
+                    behandlingId = behandlingId,
+                    mottattDato = søknadDato,
+                    avsluttetDato = avsluttetDato,
+                    avsluttetType = BehandlingHendelse.HendelseType.AVBRUTT,
+                )
+
             messageContext.key shouldBe søknadId.toString()
             messageContext.message shouldEqualSpecifiedJsonIgnoringOrder
                 """
@@ -117,7 +136,7 @@ class MediatorTest {
                   "ident": "$testIdent",
                   "behandlingId": "$behandlingId",
                   "søknadId": "$søknadId",
-                  "dato": "$søknadsDato"
+                  "dato": "$avsluttetDato"
                 } 
                 """.trimIndent()
 
@@ -126,7 +145,7 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingAvbrutt(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = søknadsDato,
+                        skjedde = avsluttetDato,
                         ident = testIdent,
                         årsak = "Oppgaven er endret i Arena",
                     ),
@@ -140,7 +159,7 @@ class MediatorTest {
                   "ident": "$testIdent",
                   "behandlingId": "$behandlingId",
                   "søknadId": "$søknadId",
-                  "dato": "$søknadsDato"
+                  "dato": "$avsluttetDato"
                 } 
                 """.trimIndent()
         }
@@ -148,9 +167,16 @@ class MediatorTest {
 
     @Test
     fun `Skal sende hendelse for en permitteringssøknad som er ferdigbehandlet`() {
+        val slot = slot<SøknadBehandling>()
         val repository =
             mockk<Repository>().also {
-                every { it.finnes(behandlingId) } returns true
+                every { it.finnSøknadBehandling(søknadId = søknadId) } returns
+                    SøknadBehandling(
+                        søknadId = søknadId,
+                        mottattDato = søknadDato,
+                        behandlingId = behandlingId,
+                    )
+                every { it.lagre(capture(slot)) } just Runs
             }
 
         val mediator =
@@ -166,11 +192,20 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingFerdig(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = søknadsDato,
+                        skjedde = avsluttetDato,
                         ident = testIdent,
                     ),
                 context = messageContext,
             )
+
+            slot.captured shouldBe
+                SøknadBehandling(
+                    søknadId = søknadId,
+                    behandlingId = behandlingId,
+                    mottattDato = søknadDato,
+                    avsluttetDato = avsluttetDato,
+                    avsluttetType = BehandlingHendelse.HendelseType.FERDIG_BEHANDLET,
+                )
             messageContext.key shouldBe søknadId.toString()
             messageContext.message shouldEqualSpecifiedJsonIgnoringOrder
                 """
@@ -179,7 +214,7 @@ class MediatorTest {
                   "ident": "$testIdent",
                   "behandlingId": "$behandlingId",
                   "søknadId": "$søknadId",
-                  "dato": "$søknadsDato"
+                  "dato": "$avsluttetDato"
                 } 
                 """.trimIndent()
         }
@@ -206,7 +241,7 @@ class MediatorTest {
 
         val repository =
             mockk<Repository>().also {
-                every { it.finnes(behandlingId) } returns false
+                every { it.finnSøknadBehandling(søknadId = søknadId) } returns null
             }
 
         val mediator =
@@ -222,13 +257,12 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingOpprettet(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = søknadsDato,
+                        skjedde = søknadDato,
                         ident = testIdent,
                     ),
                 context = messageContext,
             )
             verify {
-                repository wasNot Called
                 messageContext wasNot called
             }
 
@@ -237,9 +271,9 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingAvbrutt(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = søknadsDato,
+                        skjedde = avsluttetDato,
                         ident = testIdent,
-                        "Oppgaven er endret i Arena",
+                        årsak = "Oppgaven er endret i Arena",
                     ),
                 context = messageContext,
             )
@@ -252,7 +286,7 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingFerdig(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = søknadsDato,
+                        skjedde = avsluttetDato,
                         ident = testIdent,
                     ),
                 context = messageContext,

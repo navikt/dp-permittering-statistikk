@@ -45,11 +45,11 @@ sealed class BehandlingHendelse(
         }
     }
 
-    abstract val hendelsesType: HendelseType
+    abstract val hendelseType: HendelseType
 
     fun toMap(): Map<String, Any> =
         mapOf(
-            "hendelse" to hendelsesType,
+            "hendelse" to hendelseType,
             "ident" to ident,
             "behandlingId" to behandlingId,
             "søknadId" to søknadId,
@@ -64,7 +64,7 @@ sealed class BehandlingHendelse(
         if (behandlingId != other.behandlingId) return false
         if (skjedde != other.skjedde) return false
         if (ident != other.ident) return false
-        if (hendelsesType != other.hendelsesType) return false
+        if (hendelseType != other.hendelseType) return false
 
         return true
     }
@@ -74,7 +74,7 @@ sealed class BehandlingHendelse(
         result = 31 * result + behandlingId.hashCode()
         result = 31 * result + skjedde.hashCode()
         result = 31 * result + ident.hashCode()
-        result = 31 * result + hendelsesType.hashCode()
+        result = 31 * result + hendelseType.hashCode()
         return result
     }
 
@@ -84,7 +84,7 @@ sealed class BehandlingHendelse(
         skjedde: LocalDate,
         ident: String,
     ) : BehandlingHendelse(søknadId, behandlingId, skjedde, ident) {
-        override val hendelsesType = SØKT
+        override val hendelseType = SØKT
     }
 
     class BehandlingFerdig(
@@ -93,7 +93,7 @@ sealed class BehandlingHendelse(
         skjedde: LocalDate,
         ident: String,
     ) : BehandlingHendelse(søknadId, behandlingId, skjedde, ident) {
-        override val hendelsesType: HendelseType = FERDIG_BEHANDLET
+        override val hendelseType: HendelseType = FERDIG_BEHANDLET
     }
 
     class BehandlingAvbrutt(
@@ -103,7 +103,7 @@ sealed class BehandlingHendelse(
         ident: String,
         årsak: String,
     ) : BehandlingHendelse(søknadId, behandlingId, skjedde, ident) {
-        override val hendelsesType: HendelseType =
+        override val hendelseType: HendelseType =
             when (årsak) {
                 "Oppgaven er endret i Arena" -> {
                     HendelseType.AVBRUTT_BEHANDLES_ARENA

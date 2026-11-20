@@ -4,6 +4,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import no.nav.dagpenger.permittering.statistikk.db.Repository
 
 class Mediator(
     private val søknadOppslag: SøknadOppslag,
@@ -30,8 +31,9 @@ class Mediator(
                 if (erPermittert) {
                     repository.lagre(
                         SøknadBehandling(
-                            behandlingId = behandlingHendelse.behandlingId,
                             søknadId = behandlingHendelse.søknadId,
+                            behandlingId = behandlingHendelse.behandlingId,
+                            mottattDato = behandlingHendelse.skjedde,
                         ),
                     )
                     JsonMessage
@@ -43,8 +45,17 @@ class Mediator(
                 }
             }
 
-            is BehandlingHendelse.BehandlingAvbrutt -> {
-                if (repository.finnes(behandlingHendelse.behandlingId)) {
+            is BehandlingHendelse.BehandlingAvbrutt,
+            is BehandlingHendelse.BehandlingFerdig,
+            -> {
+                val søknadBehandling = repository.finnSøknadBehandling(søknadId = behandlingHendelse.søknadId)
+                if (søknadBehandling != null) {
+                    søknadBehandling.avsluttSøknadBehandling(
+                        avsluttetDato = behandlingHendelse.skjedde,
+                        avsluttetType = behandlingHendelse.hendelseType,
+                        behandlingId = behandlingHendelse.behandlingId,
+                    )
+                    repository.lagre(søknadBehandling)
                     JsonMessage
                         .newMessage(
                             map = behandlingHendelse.toMap(),
@@ -54,16 +65,16 @@ class Mediator(
                 }
             }
 
-            is BehandlingHendelse.BehandlingFerdig -> {
-                if (repository.finnes(behandlingHendelse.behandlingId)) {
-                    JsonMessage
-                        .newMessage(
-                            map = behandlingHendelse.toMap(),
-                        ).let {
-                            context.publish(behandlingHendelse.søknadId.toString(), it.toJson())
-                        }
-                }
-            }
+//            is BehandlingHendelse.BehandlingFerdig -> {
+//                if (repository.finnes(søknadId = behandlingHendelse.søknadId)) {
+//                    JsonMessage
+//                        .newMessage(
+//                            map = behandlingHendelse.toMap(),
+//                        ).let {
+//                            context.publish(behandlingHendelse.søknadId.toString(), it.toJson())
+//                        }
+//                }
+//            }
         }
     }
 }

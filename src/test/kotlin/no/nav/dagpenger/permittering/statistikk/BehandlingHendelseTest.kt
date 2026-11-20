@@ -51,7 +51,7 @@ class BehandlingHendelseTest {
             it.søknadId shouldBe søknadId
             it.skjedde shouldBe søknadsDato
             it.ident shouldBe testIdent
-            it.hendelsesType shouldBe BehandlingHendelse.HendelseType.AVBRUTT
+            it.hendelseType shouldBe BehandlingHendelse.HendelseType.AVBRUTT
         }
 
         newMessage(
@@ -63,7 +63,7 @@ class BehandlingHendelseTest {
             it.søknadId shouldBe søknadId
             it.skjedde shouldBe søknadsDato
             it.ident shouldBe testIdent
-            it.hendelsesType shouldBe BehandlingHendelse.HendelseType.AVBRUTT_BEHANDLES_ARENA
+            it.hendelseType shouldBe BehandlingHendelse.HendelseType.AVBRUTT_BEHANDLES_ARENA
         }
     }
 
