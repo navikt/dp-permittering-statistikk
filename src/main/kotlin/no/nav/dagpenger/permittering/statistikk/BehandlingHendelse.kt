@@ -56,7 +56,6 @@ sealed class BehandlingHendelse(
             "dato" to skjedde,
         )
 
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is BehandlingHendelse) return false
@@ -79,9 +78,8 @@ sealed class BehandlingHendelse(
         return result
     }
 
-    override fun toString(): String {
-        return "BehandlingHendelse(søknadId=$søknadId, behandlingId=$behandlingId, skjedde=$skjedde, hendelseType=$hendelseType)"
-    }
+    override fun toString(): String =
+        "BehandlingHendelse(søknadId=$søknadId, behandlingId=$behandlingId, skjedde=$skjedde, hendelseType=$hendelseType)"
 
     class BehandlingOpprettet(
         søknadId: UUID,

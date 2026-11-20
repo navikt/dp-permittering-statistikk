@@ -17,7 +17,6 @@ internal class SøknadBehandlingMottak(
     private val mediator: Mediator,
 ) : River.PacketListener {
     companion object {
-
         fun JsonMessage.preconditions() {
             this.requireAny("@event_name", eventNavn)
             this.requireValue("behandletHendelse.type", "Søknad")
