@@ -1,4 +1,7 @@
 kafka_pool: nav-prod
-
 dp-soknad-orkestrator:
   scope: "api://prod-gcp.teamdagpenger.dp-soknad-orkestrator/.default"
+db:
+  highAvailability: true
+  pointInTimeRecovery: true
+  tier: db-custom-1-3840
