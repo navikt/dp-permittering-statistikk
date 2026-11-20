@@ -8,6 +8,7 @@ import io.mockk.just
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 class SøknadBehandlingMottakTest {
@@ -78,11 +79,13 @@ class SøknadBehandlingMottakTest {
         return """
             {
               "@event_name": "$hendelseNavn",
+              "@opprettet": "${LocalDateTime.now()}",
               "behandletHendelse": {
                 "type": "Søknad",
                 "id": "$søknadId",
                 "skjedde": "$skjedde"
               },
+              "sistEndret": "${LocalDateTime.now()}",
               "behandlingId": "$behandlingId",
               "ident": "$ident"
             }

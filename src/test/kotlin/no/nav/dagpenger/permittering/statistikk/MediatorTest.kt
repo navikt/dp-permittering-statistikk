@@ -58,7 +58,7 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingOpprettet(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = søknadDato,
+                        dato = søknadDato,
                         ident = testIdent,
                     ),
                 context = messageContext,
@@ -112,7 +112,7 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingAvbrutt(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = avsluttetDato,
+                        dato = avsluttetDato,
                         ident = testIdent,
                         årsak = "test",
                     ),
@@ -145,7 +145,7 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingAvbrutt(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = avsluttetDato,
+                        dato = avsluttetDato,
                         ident = testIdent,
                         årsak = "Oppgaven er endret i Arena",
                     ),
@@ -192,7 +192,7 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingFerdig(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = avsluttetDato,
+                        dato = avsluttetDato,
                         ident = testIdent,
                     ),
                 context = messageContext,
@@ -257,7 +257,7 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingOpprettet(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = søknadDato,
+                        dato = søknadDato,
                         ident = testIdent,
                     ),
                 context = messageContext,
@@ -271,7 +271,7 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingAvbrutt(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = avsluttetDato,
+                        dato = avsluttetDato,
                         ident = testIdent,
                         årsak = "Oppgaven er endret i Arena",
                     ),
@@ -286,7 +286,7 @@ class MediatorTest {
                     BehandlingHendelse.BehandlingFerdig(
                         søknadId = søknadId,
                         behandlingId = behandlingId,
-                        skjedde = avsluttetDato,
+                        dato = avsluttetDato,
                         ident = testIdent,
                     ),
                 context = messageContext,

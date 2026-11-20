@@ -9,33 +9,36 @@ import no.nav.dagpenger.permittering.statistikk.SøknadBehandlingMottak.Companio
 import no.nav.dagpenger.permittering.statistikk.SøknadBehandlingMottak.Companion.requiredKeys
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 class BehandlingHendelseTest {
     private val testIdent = "12345678910"
     private val søknadId = UUID.randomUUID()
-    private val søknadsDato = LocalDate.now()
+    private val idag = LocalDateTime.now()
     private val behandlingId = UUID.randomUUID()
 
     @Test
     fun `Konstruering av BehandlingOpprettet og BehandlingFerdigfra JsonMessage`() {
         newMessage(
             eventNavn = "behandling_opprettet",
+            skjedde = idag.toLocalDate(),
         ).toBehandlingHendelse() shouldBe
             BehandlingHendelse.BehandlingOpprettet(
                 behandlingId = behandlingId,
                 søknadId = søknadId,
-                skjedde = søknadsDato,
+                dato = idag.toLocalDate(),
                 ident = testIdent,
             )
 
         newMessage(
             eventNavn = "behandlingsresultat",
+            sistendret = idag,
         ).toBehandlingHendelse() shouldBe
             BehandlingHendelse.BehandlingFerdig(
                 behandlingId = behandlingId,
                 søknadId = søknadId,
-                skjedde = søknadsDato,
+                dato = idag.toLocalDate(),
                 ident = testIdent,
             )
     }
@@ -44,24 +47,26 @@ class BehandlingHendelseTest {
     fun `Konstruering av BehandlingAvbrutt fra JsonMessage`() {
         newMessage(
             eventNavn = "behandling_avbrutt",
+            opprettet = idag,
             årsak = "test",
         ).toBehandlingHendelse().let {
             it.shouldBeInstanceOf<BehandlingHendelse.BehandlingAvbrutt>()
             it.behandlingId shouldBe behandlingId
             it.søknadId shouldBe søknadId
-            it.skjedde shouldBe søknadsDato
+            it.dato shouldBe idag.toLocalDate()
             it.ident shouldBe testIdent
             it.hendelseType shouldBe BehandlingHendelse.HendelseType.AVBRUTT
         }
 
         newMessage(
             eventNavn = "behandling_avbrutt",
+            opprettet = idag,
             årsak = "Oppgaven er endret i Arena",
         ).toBehandlingHendelse().let {
             it.shouldBeInstanceOf<BehandlingHendelse.BehandlingAvbrutt>()
             it.behandlingId shouldBe behandlingId
             it.søknadId shouldBe søknadId
-            it.skjedde shouldBe søknadsDato
+            it.dato shouldBe idag.toLocalDate()
             it.ident shouldBe testIdent
             it.hendelseType shouldBe BehandlingHendelse.HendelseType.AVBRUTT_BEHANDLES_ARENA
         }
@@ -71,7 +76,9 @@ class BehandlingHendelseTest {
         eventNavn: String,
         søknadId: UUID = this.søknadId,
         behandlingId: UUID = this.behandlingId,
-        skjedde: LocalDate = this.søknadsDato,
+        skjedde: LocalDate? = null,
+        opprettet: LocalDateTime? = null,
+        sistendret: LocalDateTime? = null,
         ident: String = this.testIdent,
         årsak: String? = null,
     ): JsonMessage =
@@ -81,13 +88,15 @@ class BehandlingHendelseTest {
                     put("@event_name", eventNavn)
                     put(
                         "behandletHendelse",
-                        mapOf(
-                            "id" to søknadId,
-                            "skjedde" to skjedde,
-                        ),
+                        buildMap {
+                            put("id", søknadId)
+                            skjedde?.let { put("skjedde", it) }
+                        },
                     )
                     put("behandlingId", behandlingId)
                     put("ident", ident)
+                    opprettet?.let { put("@opprettet", it) }
+                    sistendret?.let { put("sistEndret", it) }
                     årsak?.let {
                         put("årsak", it)
                     }

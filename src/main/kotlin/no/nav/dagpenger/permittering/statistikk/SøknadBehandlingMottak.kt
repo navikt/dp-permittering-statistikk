@@ -27,7 +27,7 @@ internal class SøknadBehandlingMottak(
         }
 
         fun JsonMessage.interestedKeys() {
-            this.interestedIn("årsak")
+            this.interestedIn("årsak", "@opprettet", "sistEndret")
         }
 
         val eventNavn =

@@ -4,12 +4,13 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import no.nav.dagpenger.permittering.statistikk.BehandlingHendelse.HendelseType.FERDIG_BEHANDLET
 import no.nav.dagpenger.permittering.statistikk.BehandlingHendelse.HendelseType.SØKT
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 sealed class BehandlingHendelse(
     val søknadId: UUID,
     val behandlingId: UUID,
-    val skjedde: LocalDate,
+    val dato: LocalDate,
     val ident: String,
 ) {
     enum class HendelseType {
@@ -23,21 +24,23 @@ sealed class BehandlingHendelse(
         fun JsonMessage.toBehandlingHendelse(): BehandlingHendelse {
             val eventName = this["@event_name"].stringValue()
             val søknadId: UUID = UUID.fromString(this["behandletHendelse"]["id"].stringValue())
-            val skjedde: LocalDate = LocalDate.parse(this["behandletHendelse"]["skjedde"].stringValue())
             val behandlingId: UUID = UUID.fromString(this["behandlingId"].stringValue())
             val ident: String = this["ident"].stringValue()
             val årsak: String = this["årsak"].stringValue("")
             return when (eventName) {
                 "behandling_opprettet" -> {
-                    BehandlingOpprettet(søknadId, behandlingId, skjedde, ident)
+                    val dato: LocalDate = LocalDate.parse(this["behandletHendelse"]["skjedde"].stringValue())
+                    BehandlingOpprettet(søknadId, behandlingId, dato, ident)
                 }
 
                 "behandling_avbrutt" -> {
-                    BehandlingAvbrutt(søknadId, behandlingId, skjedde, ident, årsak)
+                    val dato: LocalDate = LocalDateTime.parse(this["@opprettet"].stringValue()).toLocalDate()
+                    BehandlingAvbrutt(søknadId, behandlingId, dato, ident, årsak)
                 }
 
                 "behandlingsresultat" -> {
-                    BehandlingFerdig(søknadId, behandlingId, skjedde, ident)
+                    val dato: LocalDate = LocalDateTime.parse(this["sistEndret"].stringValue()).toLocalDate()
+                    BehandlingFerdig(søknadId, behandlingId, dato, ident)
                 }
 
                 else -> throw IllegalArgumentException("Kunne ikke opprette melding for $eventName")
@@ -53,7 +56,7 @@ sealed class BehandlingHendelse(
             "ident" to ident,
             "behandlingId" to behandlingId,
             "søknadId" to søknadId,
-            "dato" to skjedde,
+            "dato" to dato,
         )
 
     override fun equals(other: Any?): Boolean {
@@ -62,7 +65,7 @@ sealed class BehandlingHendelse(
 
         if (søknadId != other.søknadId) return false
         if (behandlingId != other.behandlingId) return false
-        if (skjedde != other.skjedde) return false
+        if (dato != other.dato) return false
         if (ident != other.ident) return false
         if (hendelseType != other.hendelseType) return false
 
@@ -72,40 +75,40 @@ sealed class BehandlingHendelse(
     override fun hashCode(): Int {
         var result = søknadId.hashCode()
         result = 31 * result + behandlingId.hashCode()
-        result = 31 * result + skjedde.hashCode()
+        result = 31 * result + dato.hashCode()
         result = 31 * result + ident.hashCode()
         result = 31 * result + hendelseType.hashCode()
         return result
     }
 
     override fun toString(): String =
-        "BehandlingHendelse(søknadId=$søknadId, behandlingId=$behandlingId, skjedde=$skjedde, hendelseType=$hendelseType)"
+        "BehandlingHendelse(søknadId=$søknadId, behandlingId=$behandlingId, skjedde=$dato, hendelseType=$hendelseType)"
 
     class BehandlingOpprettet(
         søknadId: UUID,
         behandlingId: UUID,
-        skjedde: LocalDate,
+        dato: LocalDate,
         ident: String,
-    ) : BehandlingHendelse(søknadId, behandlingId, skjedde, ident) {
+    ) : BehandlingHendelse(søknadId, behandlingId, dato, ident) {
         override val hendelseType = SØKT
     }
 
     class BehandlingFerdig(
         søknadId: UUID,
         behandlingId: UUID,
-        skjedde: LocalDate,
+        dato: LocalDate,
         ident: String,
-    ) : BehandlingHendelse(søknadId, behandlingId, skjedde, ident) {
+    ) : BehandlingHendelse(søknadId, behandlingId, dato, ident) {
         override val hendelseType: HendelseType = FERDIG_BEHANDLET
     }
 
     class BehandlingAvbrutt(
         søknadId: UUID,
         behandlingId: UUID,
-        skjedde: LocalDate,
+        dato: LocalDate,
         ident: String,
         årsak: String,
-    ) : BehandlingHendelse(søknadId, behandlingId, skjedde, ident) {
+    ) : BehandlingHendelse(søknadId, behandlingId, dato, ident) {
         override val hendelseType: HendelseType =
             when (årsak) {
                 "Oppgaven er endret i Arena" -> {

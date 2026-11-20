@@ -36,7 +36,7 @@ class Mediator(
                         SøknadBehandling(
                             søknadId = behandlingHendelse.søknadId,
                             behandlingId = behandlingHendelse.behandlingId,
-                            mottattDato = behandlingHendelse.skjedde,
+                            mottattDato = behandlingHendelse.dato,
                         ),
                     )
                     JsonMessage
@@ -55,7 +55,7 @@ class Mediator(
                 val søknadBehandling = repository.finnSøknadBehandling(søknadId = behandlingHendelse.søknadId)
                 if (søknadBehandling != null) {
                     søknadBehandling.avsluttSøknadBehandling(
-                        avsluttetDato = behandlingHendelse.skjedde,
+                        avsluttetDato = behandlingHendelse.dato,
                         avsluttetType = behandlingHendelse.hendelseType,
                         behandlingId = behandlingHendelse.behandlingId,
                     )
