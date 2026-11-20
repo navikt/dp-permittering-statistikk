@@ -2,9 +2,12 @@ package no.nav.dagpenger.permittering.statistikk
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.dagpenger.permittering.statistikk.db.Repository
+
+private val logger = KotlinLogging.logger {}
 
 class Mediator(
     private val søknadOppslag: SøknadOppslag,
@@ -42,6 +45,7 @@ class Mediator(
                         ).let {
                             context.publish(behandlingHendelse.søknadId.toString(), it.toJson())
                         }
+                    logger.info { "Send permittering søknad(${behandlingHendelse.søknadId}) mottatt til statistikk" }
                 }
             }
 
@@ -62,6 +66,7 @@ class Mediator(
                         ).let {
                             context.publish(behandlingHendelse.søknadId.toString(), it.toJson())
                         }
+                    logger.info { "Send permittering søknad(${behandlingHendelse.søknadId}) avsluttet til statistikk" }
                 }
             }
         }

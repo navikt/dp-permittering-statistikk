@@ -10,12 +10,13 @@ import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.runBlocking
 import no.nav.dagpenger.permittering.statistikk.BehandlingHendelse.Companion.toBehandlingHendelse
 
+private val logger = KotlinLogging.logger {}
+
 internal class SøknadBehandlingMottak(
     rapidsConnection: RapidsConnection,
     private val mediator: Mediator,
 ) : River.PacketListener {
     companion object {
-        private val logger = KotlinLogging.logger {}
 
         fun JsonMessage.preconditions() {
             this.requireAny("@event_name", eventNavn)
@@ -57,7 +58,9 @@ internal class SøknadBehandlingMottak(
         meterRegistry: MeterRegistry,
     ) {
         runBlocking {
-            mediator.håndter(packet.toBehandlingHendelse(), context)
+            val behandlingHendelse = packet.toBehandlingHendelse()
+            logger.info { "Mottok behandling hendelse: $behandlingHendelse" }
+            mediator.håndter(behandlingHendelse, context)
         }
     }
 }
