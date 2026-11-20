@@ -40,6 +40,8 @@ spec:
   env:
     - name: JDK_JAVA_OPTIONS
       value: -XX:+UseParallelGC -XX:MaxRAMPercentage=50.0 -XX:ActiveProcessorCount=4
+    - name: SOKNAD_ORKESTRATOR_API_SCOPE
+      value: "{{ dp-soknad-orkestrator.scope }}"
   gcp:
     sqlInstances:
       - collation: nb_NO.UTF8
@@ -74,3 +76,4 @@ spec:
       rules:
         - application: logging
           namespace: nais-system
+        - application: dp-behandling

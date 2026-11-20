@@ -12,10 +12,13 @@ repositories {
 }
 
 dependencies {
+
+    implementation("no.nav.dagpenger:oauth2-klient:2026.11.12-12.16.6c115ef19241")
     implementation(libs.kotlin.logging)
     implementation(libs.rapids.and.rivers)
     implementation(libs.konfig)
     implementation(libs.bundles.postgres)
+    implementation(libs.bundles.ktor.client)
 
     testImplementation(libs.bundles.kotest.assertions)
     testImplementation(libs.mockk)
