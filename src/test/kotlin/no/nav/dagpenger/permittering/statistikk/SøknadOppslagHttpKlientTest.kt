@@ -58,7 +58,7 @@ class SøknadOppslagHttpKlientTest {
 
             klient.erPermittertUtenforFiskeindustri(ident, søknadId) shouldBe false
             capturedRequest.method shouldBe "POST"
-            capturedRequest.path shouldBe "/behov/PermittertUtenforFiskeforedling"
+            capturedRequest.path shouldBe "/behov/Permittert"
             capturedRequest.authorization shouldBe "Bearer test-token"
             capturedRequest.body shouldEqualSpecifiedJsonIgnoringOrder
                 """

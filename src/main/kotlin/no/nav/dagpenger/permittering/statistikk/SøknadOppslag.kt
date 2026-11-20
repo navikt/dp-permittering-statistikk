@@ -64,7 +64,7 @@ class SøknadOppslagHttpKlient(
     override suspend fun erPermittertUtenforFiskeindustri(
         ident: String,
         søknadId: UUID,
-    ): Boolean = postBehov("PermittertUtenforFiskeforedling", ident, søknadId)
+    ): Boolean = postBehov("Permittert", ident, søknadId)
 
     private suspend fun postBehov(
         behovNavn: String,
