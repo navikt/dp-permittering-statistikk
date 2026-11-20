@@ -79,4 +79,4 @@ spec:
       rules:
         - application: logging
           namespace: nais-system
-        - application: dp-behandling
+        - application: dp-soknad-orkestrator
