@@ -3,6 +3,7 @@ package no.nav.dagpenger.permittering.statistikk
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.dagpenger.permittering.statistikk.db.PostgresDataSourceBuilder
+import no.nav.dagpenger.permittering.statistikk.db.PostgresDataSourceBuilder.runMigration
 import no.nav.dagpenger.permittering.statistikk.db.PostgresRepository
 import no.nav.helse.rapids_rivers.RapidApplication
 
@@ -32,6 +33,7 @@ internal class ApplicationBuilder(
     fun start() = rapidsConnection.start()
 
     override fun onStartup(rapidsConnection: RapidsConnection) {
+        runMigration()
         logger.info { "Starter ${Configuration.APP_NAME}" }
     }
 
