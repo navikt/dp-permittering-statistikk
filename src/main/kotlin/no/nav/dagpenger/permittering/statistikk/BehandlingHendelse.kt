@@ -17,6 +17,7 @@ sealed class BehandlingHendelse(
         SØKT,
         AVBRUTT,
         AVBRUTT_BEHANDLES_ARENA,
+        AVBRUTT_FLYTTET_TIL_NY_BEHANDLING,
         FERDIG_BEHANDLET,
     }
 
@@ -113,6 +114,9 @@ sealed class BehandlingHendelse(
             when (årsak) {
                 "Oppgaven er endret i Arena" -> {
                     HendelseType.AVBRUTT_BEHANDLES_ARENA
+                }
+                "Flyttet til ny behandling" -> {
+                    HendelseType.AVBRUTT_FLYTTET_TIL_NY_BEHANDLING
                 }
                 else -> HendelseType.AVBRUTT
             }

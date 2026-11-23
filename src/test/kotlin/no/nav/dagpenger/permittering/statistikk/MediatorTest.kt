@@ -42,6 +42,7 @@ class MediatorTest {
         val slot = slot<SøknadBehandling>()
         val repository =
             mockk<Repository>().also {
+                every { it.finnSøknadBehandling(søknadId = søknadId) } returns null
                 every { it.lagre(capture(slot)) } just Runs
             }
 
@@ -288,6 +289,48 @@ class MediatorTest {
                         behandlingId = behandlingId,
                         dato = avsluttetDato,
                         ident = testIdent,
+                    ),
+                context = messageContext,
+            )
+            verify {
+                messageContext wasNot called
+            }
+        }
+    }
+
+    @Test
+    fun `Skal ignorere behandling hendelser som gjelder avbrutt behandling som er flyttet til ny behandling`() {
+        val søknadOppslag =
+            mockk<SøknadOppslag>().also {
+                coEvery {
+                    it.erPermittertUtenforFiskeindustri(
+                        søknadId = søknadId,
+                        ident = testIdent,
+                    )
+                } returns true
+            }
+
+        val repository =
+            mockk<Repository>().also {
+                every { it.finnSøknadBehandling(søknadId = søknadId) } returns null
+            }
+
+        val mediator =
+            Mediator(
+                søknadOppslag = søknadOppslag,
+                repository = repository,
+            )
+
+        val messageContext = mockk<MessageContext>()
+        runBlocking {
+            mediator.håndter(
+                behandlingHendelse =
+                    BehandlingHendelse.BehandlingAvbrutt(
+                        søknadId = søknadId,
+                        behandlingId = behandlingId,
+                        dato = avsluttetDato,
+                        ident = testIdent,
+                        årsak = "Flyttet til ny behandling",
                     ),
                 context = messageContext,
             )
